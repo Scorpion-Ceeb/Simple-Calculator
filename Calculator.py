@@ -25,15 +25,18 @@ class Calculator:
             1:(3,1),2:(3,2),3:(3,3),
             0:(4,2),'.':(4,1)
         }
-        self.create_buttons()
+        self.buttons_operators=[]
 
         self.operators = {
             '/': '\u00F7','*':'\u00D7', '+':'+', '-':'-'
         }
+
+        self.create_buttons()
         self.config_buttons_size()
         self.create_operators_buttons()
         self.create_clear_button()
         self.create_equals_button()
+
 
 
     def run(self):
@@ -56,11 +59,15 @@ class Calculator:
         self.update_total_label()
         self.update_current_label()
 
+        self.check_buttons()
+
     def clear_expression(self):
         self.current_expression =''
         self.update_current_label()
         self.total_expression =''
         self.update_total_label()
+
+        self.check_buttons()
 
     def update_total_label(self):
         self.total_exp_frame.config(text= self.total_expression)
@@ -72,17 +79,47 @@ class Calculator:
         self.current_expression+=str(value)
         self.update_current_label()
 
+        self.check_buttons()
+
     def config_buttons_size(self):
         self.buttons_frame.rowconfigure(0, weight=1)
 
         for x in range(1, 5):
             self.buttons_frame.rowconfigure(x, weight=1)
             self.buttons_frame.columnconfigure(x, weight=1)
+    
+    def check_buttons(self):
+        if self.disable_operators():
+            for bton in self.buttons_operators:
+                bton.config(state= tk.DISABLED)
+        else:
+            for bton in self.buttons_operators:
+                bton.config(state= tk.NORMAL)
+
+    def is_operator(self):
+
+        for oper in list(self.operators.keys())[0:3]:
+            if(self.total_expression[-1] == oper):
+                return True
         
+        return False
+    
+    def disable_operators(self):
+
+        if len(self.current_expression) == 0 and len(self.total_expression) == 0:
+            return True
+
+        if (not(len(self.total_expression) == 0) and self.is_operator()) and (len(self.current_expression) == 0):
+            return True
+        
+        return False
+
     def create_equals_button(self):
         button = tk.Button(self.buttons_frame, text='=', bg=LIGHT_BLUE, fg=LABEL_COLOR, 
-            borderwidth=0, font=DIGIT_FONT_SIZE, command=lambda : self.evaluate_expression())
+            borderwidth=0, font=DIGIT_FONT_SIZE, 
+            command=lambda : self.evaluate_expression())
         button.grid(row=4, column=3, columnspan=2, sticky=tk.NSEW)
+        self.buttons_operators.append(button)
 
     def create_clear_button(self):
         button = tk.Button(self.buttons_frame, text= 'C',bg=WHITE, fg=CLEAR_LABEL_COLOR, 
@@ -90,18 +127,49 @@ class Calculator:
         button.grid(row=0, column=1, columnspan=3, sticky=tk.NSEW)
 
     def create_operators_buttons(self):
+        self.create_div_operator()
+        self.create_mult_operator()
+        self.create_sum_operator()
+        self.create_subs_operator()
 
-        for number, (operator, symbol) in enumerate(self.operators.items()):
-            button = tk.Button(self.buttons_frame, text=symbol, bg=WHITE, fg=LABEL_COLOR, 
-                borderwidth=0, font=DIGIT_FONT_SIZE, command=lambda x=operator: self.append_expression(x))
-            button.grid(row=number, column= 4, sticky=tk.NSEW)
+    def create_sum_operator(self):
+        
+        button = tk.Button(self.buttons_frame, text='+', bg=WHITE, fg=LABEL_COLOR, 
+                borderwidth=0, font=DIGIT_FONT_SIZE, 
+                command=lambda x='+': self.append_expression(x), state= tk.DISABLED)
+        button.grid(row=2, column= 4, sticky=tk.NSEW)
+        
+        self.buttons_operators.append(button)
+
+    def create_mult_operator(self):
+        
+        button = tk.Button(self.buttons_frame, text='\u00D7', bg=WHITE, fg=LABEL_COLOR, 
+                borderwidth=0, font=DIGIT_FONT_SIZE, 
+                command=lambda x='*': self.append_expression(x), state= tk.DISABLED)
+        button.grid(row=1, column= 4, sticky=tk.NSEW)
+        self.buttons_operators.append(button)
+    
+    def create_div_operator(self):
+        
+        button = tk.Button(self.buttons_frame, text='\u00F7', bg=WHITE, fg=LABEL_COLOR, 
+                borderwidth=0, font=DIGIT_FONT_SIZE, 
+                command=lambda x='/': self.append_expression(x), state= tk.DISABLED)
+        button.grid(row=0, column= 4, sticky=tk.NSEW)
+        self.buttons_operators.append(button)
+    
+    def create_subs_operator(self):
+        
+        button = tk.Button(self.buttons_frame, text='-', bg=WHITE, fg=LABEL_COLOR, 
+                borderwidth=0, font=DIGIT_FONT_SIZE, 
+                command=lambda x='-': self.append_expression(x))
+        button.grid(row=3, column= 4, sticky=tk.NSEW)
 
     def create_buttons(self):
 
         for digit, grid_number in self.digits.items():
             button = tk.Button(self.buttons_frame, text=str(digit), bg=WHITE, fg=LABEL_COLOR, 
                     borderwidth=0, font=DIGIT_FONT_SIZE, command=lambda x=digit: self.add_to_expression(x))
-            button.grid(row=grid_number[0], column= grid_number[1], sticky=tk.NSEW)
+            button.grid(row=grid_number[0], column= grid_number[1], sticky=tk.NSEW)      
 
     def create_label_expressions(self):
 
